@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Happy Birthday</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      background-color: #000;
+      overflow: hidden;
+      height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      font-family: monospace;
+    }
+
+    canvas {
+      position: absolute;
+      top: 0;
+      left: 0;
+    }
+  </style>
+</head>
+<body>
+
+  <canvas id="matrix-canvas"></canvas>
+
+  <script>
+    const canvas = document.getElementById('matrix-canvas');
+    const ctx = canvas.getContext('2d');
+
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+
+    const letters = 'HAPPYBIRTHDAY0123456789♥';
+    const fontSize = 14;
+    const columns = Math.floor(canvas.width / fontSize);
+    const drops = Array(columns).fill(1);
+
+    // Sequence stages for the heart animation
+    const stages = [
+      { text: "3", duration: 1200 },
+      { text: "2", duration: 1200 },
+      { text: "1", duration: 1200 },
+      { text: "Happy", duration: 1000 },
+      { text: "Birthday", duration: 1000 },
+      { text: "To You!", duration: 1000 },
+      { text: "❤️", duration: 0 } // Final heart state
+    ];
+
+    let currentStage = 0;
+    let stageStartTime = Date.now();
+
+    function draw() {
+      // Semi-transparent black background to create fading matrix trailing effect
+      ctx.fillStyle = 'rgba(0, 0, 0, 0.08)';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+      ctx.fillStyle = '#ff5ea5'; // Matrix pinkish-red rain color
+      ctx.font = fontSize + 'px monospace';
+
+      for (let i = 0; i < drops.length; i++) {
+        const text = letters.charAt(Math.floor(Math.random() * letters.length));
+        const x = i * fontSize;
+        const y = drops[i] * fontSize;
+
+        ctx.fillText(text, x, y);
+
+        if (y > canvas.height && Math.random() > 0.975) {
+          drops[i] = 0;
+        }
+        drops[i]++;
+      }
+
+      // Check for stage progression
+      let now = Date.now();
+      if (stages[currentStage].duration > 0 && now - stageStartTime > stages[currentStage].duration) {
+        if (currentStage < stages.length - 1) {
+          currentStage++;
+          stageStartTime = now;
+        }
+      }
+
+      // Draw the central text / heart shape overlay
+      drawCenterText(stages[currentStage].text);
+
+      requestAnimationFrame(draw);
+    }
+
+    function drawCenterText(str) {
+      ctx.save();
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      const centerX = canvas.width / 2;
+      const centerY = canvas.height / 2;
+
+      if (str === "❤️") {
+        // Draw Heart Shape formed by glowing particles/text
+        ctx.fillStyle = '#ff2a6d';
+        ctx.shadowColor = '#ff5e97';
+        ctx.shadowBlur = 25;
+        ctx.font = 'bold 32px monospace';
+        ctx.fillText("Happy Birthday❤️", centerX, centerY - 15);
+
+        // Draw particle heart outline
+        ctx.font = '14px monospace';
+        let particleText = "Happy Birthday To You";
+        let angle = 0;
+        while (angle < Math.PI * 2) {
+          let hx = centerX + 130 * Math.pow(Math.sin(angle), 3);
+          let hy = centerY - 110 * (13 * Math.cos(angle) - 5 * Math.cos(2 * angle) - 2 * Math.cos(3 * angle) - Math.cos(4 * angle)) / 16;
+          ctx.fillText("♥", hx, hy);
+          angle += 0.18;
+        }
+      } else {
+        // Draw countdown or words (3, 2, 1, Happy, Birthday...)
+        ctx.fillStyle = '#ffffff';
+        ctx.shadowColor = '#ff5e97';
+        ctx.shadowBlur = 30;
+        ctx.font = 'bold 70px monospace';
+        ctx.fillText(str, centerX, centerY);
+      }
+
+      ctx.restore();
+    }
+
+    // Handle window resizing
+    window.addEventListener('resize', () => {
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+    });
+
+    draw();
+  </script>
+</body>
+</html>
